@@ -55,6 +55,16 @@ func display(count int, cipher Text, plain Text, key Raw) {
 		fmt.Sprintf("%03b", key),
 	)
 }
+func displayObservation(count int, observation Observation) {
+	fmt.Printf(
+		"| %3d | %-6s | %-6s | %-6s | %s \u2295 %s = %s\n",
+		count,
+		observation.CipherText, observation.PlainText, observation.Key,
+		fmt.Sprintf("%03b", observation.CipherText.Encode()),
+		fmt.Sprintf("%03b", observation.PlainText.Encode()),
+		fmt.Sprintf("%03b", observation.Key.Encode()),
+	)
+}
 
 func displayFooter() {
 	fmt.Print("+=====+========+========+========+\n")

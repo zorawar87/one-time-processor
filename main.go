@@ -9,12 +9,23 @@ import (
 // candidate plaintexts are obtained
 // for which an associated OTP key is deduced and displayed
 func main() {
+	var words chan Text
+	var observations chan Observation
+
 	for _, cipher := range CIPHERS {
 		displayHeader()
-		words := make(chan Text)
+
+		words = make(chan Text)
+		observations = make(chan Observation)
 
 		go getPlaintext(len(cipher), words)
-		getKeys(cipher, words)
+		go getKeys(cipher, words, observations)
+
+		wordCount := 0
+		for i := range observations {
+			wordCount++
+			displayObservation(wordCount, i)
+		}
 
 		displayFooter()
 	}
@@ -41,19 +52,15 @@ func getPlaintext(lenCipher int, words chan Text) {
 
 // For each candidate plaintext word,
 // an OTP key is deduced by XOR-ing the plaintext with the cipher
-func getKeys(cipher Text, words chan Text) {
+func getKeys(cipher Text, words chan Text, observations chan Observation) {
 	lenCipher := len(cipher)
-	wordCount := 0
-
 	var key Raw
 	for word := range words {
 		key = make([]int, 0, lenCipher)
-		wordCount++
-
 		for j := 0; j < lenCipher; j++ {
 			key = append(key, cipher.Encode()[j]|word.Encode()[j])
 		}
-
-		display(wordCount, cipher, word, key)
+		observations <- Observation{cipher, word, key.Decode()}
 	}
+	close(observations)
 }

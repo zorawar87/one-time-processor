@@ -1,3 +1,6 @@
+clear
+[3J[H[2J#go run definitions.go utils.go main.go > out.txt
+go run definitions.go utils.go main.go
 +=====+========+========+========+
 |  #  | Cipher | Plain  |  Key   | Proof: Cipher ⊕ Plain = Key
 +=====+========+========+========+
