@@ -1,8 +1,7 @@
 all: run
 
 run: tidy
-	#go run definitions.go utils.go main.go > out.txt
-	go run definitions.go utils.go main.go
+	go build && ./one-time-processor
 
 tidy:
-	clear
+	clear && rm -f ./one-time-processor

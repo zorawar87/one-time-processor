@@ -5,26 +5,26 @@ import (
 	re "regexp"
 )
 
-type Text string
-type Raw []int
-
-type Observation struct {
-	CipherText Text
-	PlainText  Text
-	Key        Text
-}
-
-const (
-	FILENAME = "words.txt"
-	CHARSET  = "EHIKLRST"
+type (
+	Text           string
+	Raw            []int
+	KnownPlaintext struct {
+		Cipher Text
+		Plain  Text
+	}
+	KeyPairs map[Text][]KnownPlaintext
 )
 
-var VALID_WORD = re.MustCompile(fmt.Sprintf("^[%s]+$", CHARSET))
-var CIPHERS = []Text{"KHHLTK", "KTHLLE"}
+const (
+	CHARSET         = "EHIKLRST"
+	DICTIONARY_NAME = "dictionary.txt"
+	DICTIONARY_URL  = "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+)
 
-//KHHLTK
-//KTHLLE
-//|x||xx
-// Find words in which
-//0,2,3 letters are the same
-// for some given key
+var (
+	VALID_WORD = re.MustCompile(fmt.Sprintf("^[%s]+$", CHARSET))
+	CIPHERS    = []Text{"KHHLTK", "KTHLLE"}
+	// assumes that all ciphertexts are of the same length
+	// (which is valid for the given ciphertexts)
+	MSG_LENGTH = len(CIPHERS[0])
+)

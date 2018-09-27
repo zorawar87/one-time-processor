@@ -1,71 +1,63 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strings"
 )
 
-// Encodes text to its binary equivalent,
-// based on the provided (character<=>binary) spec.
-// Undoes (r Raw)Decode() Text
-func (t Text) Encode() (binary Raw) {
-	for _, char := range strings.Split(ToUpper(string(t)), "") {
-		binary = append(binary, strings.Index(CHARSET, char))
+// Candidate words are chosen from a local dictionary based on:
+//  - its length
+//	- its charset (must match)
+// Accepted candidates are piped through the `words` channel
+// for further processing
+func getPlaintext(words chan Text) {
+	var err error
+
+	DownloadDictionaryIfNotExists()
+
+	file, err := os.Open(DICTIONARY_NAME)
+	panicOnErr(err)
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		word := strings.ToUpper(scanner.Text())
+		if len(word) == MSG_LENGTH && VALID_WORD.MatchString(word) {
+			words <- Text(word)
+		}
 	}
-	return
+	close(words)
 }
 
-// Decodes binary to its text equivalent,
-// based on the provided (character<=>binary) spec.
-// Undoes (t Text)Encode() Raw
-func (r Raw) Decode() Text {
-	var b bytes.Buffer
-	for _, v := range r {
-		b.WriteString(fmt.Sprintf("%c", CHARSET[v]))
+// Downloads a remote dictionary word list (<5MB)
+// if a dictionary does not exist locally
+func DownloadDictionaryIfNotExists() {
+	if _, err := os.Stat(DICTIONARY_NAME); !os.IsNotExist(err) {
+		fmt.Println("Shaved 5MB")
+		return
 	}
-	return Text(b.String())
+
+	// create a local storage file
+	out, err := os.Create(DICTIONARY_NAME)
+	panicOnErr(err)
+	defer out.Close()
+
+	// retrieve the dictionary
+	resp, err := http.Get(DICTIONARY_URL)
+	panicOnErr(err)
+	defer resp.Body.Close()
+
+	// Write the dictionary to file
+	_, err = io.Copy(out, resp.Body)
+	panicOnErr(err)
 }
 
 func panicOnErr(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func ToUpper(s string) string {
-	return strings.ToUpper(s)
-}
-
-/* Printing Utilties */
-func displayHeader() {
-	fmt.Print("+=====+========+========+========+\n")
-	fmt.Print("|  #  | Cipher | Plain  |  Key   |")
-	fmt.Print(" Proof: Cipher \u2295 Plain = Key\n")
-	fmt.Print("+=====+========+========+========+\n")
-}
-
-func display(count int, cipher Text, plain Text, key Raw) {
-	fmt.Printf(
-		"| %3d | %-6s | %-6s | %-6s | %s \u2295 %s = %s\n",
-		count,
-		cipher, plain, key.Decode(),
-		fmt.Sprintf("%03b", cipher.Encode()),
-		fmt.Sprintf("%03b", plain.Encode()),
-		fmt.Sprintf("%03b", key),
-	)
-}
-func displayObservation(count int, observation Observation) {
-	fmt.Printf(
-		"| %3d | %-6s | %-6s | %-6s | %s \u2295 %s = %s\n",
-		count,
-		observation.CipherText, observation.PlainText, observation.Key,
-		fmt.Sprintf("%03b", observation.CipherText.Encode()),
-		fmt.Sprintf("%03b", observation.PlainText.Encode()),
-		fmt.Sprintf("%03b", observation.Key.Encode()),
-	)
-}
-
-func displayFooter() {
-	fmt.Print("+=====+========+========+========+\n")
 }
