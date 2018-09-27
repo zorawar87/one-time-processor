@@ -14,20 +14,20 @@ import (
 //	- its charset (must match)
 // Accepted candidates are piped through the `words` channel
 // for further processing
-func getPlaintext(words chan Text) {
+func getPlaintext(words chan text) {
 	var err error
 
-	DownloadDictionaryIfNotExists()
+	downloadDictionaryIfNotExists()
 
-	file, err := os.Open(DICTIONARY_NAME)
+	file, err := os.Open(dictionaryName)
 	panicOnErr(err)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		word := strings.ToUpper(scanner.Text())
-		if len(word) == MSG_LENGTH && VALID_WORD.MatchString(word) {
-			words <- Text(word)
+		if len(word) == messageLength && validWord.MatchString(word) {
+			words <- text(word)
 		}
 	}
 	close(words)
@@ -35,19 +35,19 @@ func getPlaintext(words chan Text) {
 
 // Downloads a remote dictionary word list (<5MB)
 // if a dictionary does not exist locally
-func DownloadDictionaryIfNotExists() {
-	if _, err := os.Stat(DICTIONARY_NAME); !os.IsNotExist(err) {
+func downloadDictionaryIfNotExists() {
+	if _, err := os.Stat(dictionaryName); !os.IsNotExist(err) {
 		fmt.Println("Shaved 5MB")
 		return
 	}
 
 	// create a local storage file
-	out, err := os.Create(DICTIONARY_NAME)
+	out, err := os.Create(dictionaryName)
 	panicOnErr(err)
 	defer out.Close()
 
 	// retrieve the dictionary
-	resp, err := http.Get(DICTIONARY_URL)
+	resp, err := http.Get(dictionaryURL)
 	panicOnErr(err)
 	defer resp.Body.Close()
 

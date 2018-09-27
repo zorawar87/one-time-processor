@@ -11,8 +11,8 @@ package main
 //    a valid decryption, i.e., both ciphertexts yield
 //    valid plaintext with the same key
 func main() {
-	words := make(chan Text)
-	pairs := make(KeyPairs)
+	words := make(chan text)
+	pairs := make(keyPairs)
 
 	go getPlaintext(words)
 	pairs.populate(words)

@@ -6,25 +6,27 @@ import (
 )
 
 type (
-	Text           string
-	Raw            []int
-	KnownPlaintext struct {
-		Cipher Text
-		Plain  Text
+	// text can represent CipherText, PlainText or the Key (as text)
+	text string
+	// raw can represent any Text variable as raw bytes, decoded per the charset definition
+	raw            []int
+	knownPlaintext struct {
+		Cipher text
+		Plain  text
 	}
-	KeyPairs map[Text][]KnownPlaintext
+	keyPairs map[text][]knownPlaintext
 )
 
 const (
-	CHARSET         = "EHIKLRST"
-	DICTIONARY_NAME = "dictionary.txt"
-	DICTIONARY_URL  = "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+	charset        = "EHIKLRST"
+	dictionaryName = "dictionary.txt"
+	dictionaryURL  = "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
 )
 
 var (
-	VALID_WORD = re.MustCompile(fmt.Sprintf("^[%s]+$", CHARSET))
-	CIPHERS    = []Text{"KHHLTK", "KTHLLE"}
+	validWord = re.MustCompile(fmt.Sprintf("^[%s]+$", charset))
+	ciphers   = []text{"KHHLTK", "KTHLLE"}
 	// assumes that all ciphertexts are of the same length
 	// (which is valid for the given ciphertexts)
-	MSG_LENGTH = len(CIPHERS[0])
+	messageLength = len(ciphers[0])
 )

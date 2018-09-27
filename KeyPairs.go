@@ -3,24 +3,24 @@ package main
 import "fmt"
 
 // Populate the receiver with all possible key-(ciphertext,plaintext) pairs
-func (m KeyPairs) populate(words chan Text) {
+func (pairs keyPairs) populate(words chan text) {
 	for plaintext := range words {
-		for _, cipher := range CIPHERS {
+		for _, cipher := range ciphers {
 			// ciphertext XOR plaintext produces the key
 			key := cipher.XorEachChar(plaintext)
-			m[key] = append(m[key], KnownPlaintext{cipher, plaintext})
+			pairs[key] = append(pairs[key], knownPlaintext{cipher, plaintext})
 		}
 	}
 }
 
 // displays all valid decryptions
-func (keyPairs KeyPairs) displayValidDecryptions() {
+func (pairs keyPairs) displayValidDecryptions() {
 	fmt.Print("+======+========+========+========+\n")
 	fmt.Print("| Msg# |  Key   | Cipher | Plain  |\n")
 	fmt.Print("+======+========+========+========+\n")
 	messageCount := 0
-	for key, knownPlaintexts := range keyPairs {
-		if len(knownPlaintexts) == len(CIPHERS) {
+	for key, knownPlaintexts := range pairs {
+		if len(knownPlaintexts) == len(ciphers) {
 			messageCount++
 			for _, v := range knownPlaintexts {
 				fmt.Printf(
